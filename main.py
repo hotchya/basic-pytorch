@@ -1,3 +1,4 @@
+import os
 import argparse
 import numpy as np
 import torch
@@ -7,6 +8,17 @@ from torchvision import datasets, transforms
 from torch.autograd import Variable
 
 import models
+
+def save_model(model):
+    state = {
+        'acc' : args.acc,
+        'model_state_dict': model.state_dict(),
+        'optimizer_state_dict': optimizer.state_dict()
+    }
+    file_name = '.'.join([args.model, args.dataset, 'pth.tar'])
+    torch.save(state, os.path.join('saved_models/', file_name))
+    print('save model : {}'.format(file_name))
+    
 
 def train(epoch):
     model.train()
@@ -25,7 +37,7 @@ def train(epoch):
                 100. * batch_idx / len(train_loader), loss.data))
     return
 
-def test(epoch, evaluate=False):
+def test():
     model.eval()
     test_loss = 0
     correct = 0
@@ -40,10 +52,14 @@ def test(epoch, evaluate=False):
             correct += pred.eq(target.data.view_as(pred)).cpu().sum()
     acc = 100. * float(correct) / len(test_loader.dataset)
 
+    if acc > args.acc and not args.evaluate:
+        args.acc = acc
+        save_model(model)
+
     test_loss /= len(test_loader.dataset)
-    print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.2f}%)'.format(
+    print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.2f}%), Best Acc : {}'.format(
         test_loss * args.batch_size, correct, len(test_loader.dataset),
-        100. * float(correct) / len(test_loader.dataset)))
+        100. * float(correct) / len(test_loader.dataset), args.acc))
     return
 
 if __name__=='__main__':
@@ -67,8 +83,15 @@ if __name__=='__main__':
             help='number of epochs to train (default: 200)')
     parser.add_argument('--log-interval', type=int, default=100, metavar='N',
             help='how many batches to wait before logging training status')
-    
+    parser.add_argument('--evaluate', action="store_true",
+            help='evaluate model')
+    parser.add_argument('--pretrained', action='store_true',
+            help='pretrained')
+
     args = parser.parse_args()
+
+    ## accuracy state
+    args.acc = 0.0
 
     ## cuda flag
     args.cuda =  torch.cuda.is_available()
@@ -83,6 +106,7 @@ if __name__=='__main__':
         torch.backends.cudnn.deterministic=True
         torch.backends.cudnn.benchmark = False
 
+
     ## load dataset
     if args.dataset == 'MNIST':
         transform = transforms.Compose([ transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,)) ])
@@ -95,25 +119,39 @@ if __name__=='__main__':
 
         num_classes = 10
     
+
     ## load model
     if args.model == 'LeNet5':
         model = models.LeNet5()
     
     if args.cuda:
         model.cuda()
+    
+    ## optimizer & criterion
+    optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
+    criterion = nn.CrossEntropyLoss()
+
+
+    ## load pretrained model
+    if args.pretrained:
+        file_name = '.'.join([args.model, args.dataset, 'pth.tar'])
+        pretrained_model = torch.load('saved_models/'+file_name)
+        args.acc = pretrained_model['acc']
+        model.load_state_dict(pretrained_model['model_state_dict'])
+        optimizer.load_state_dict(pretrained_model['optimizer_state_dict'])
 
     # print the number of model parameters
     model_parameters = filter(lambda p: p.requires_grad, model.parameters())
     params = sum([np.prod(p.size()) for p in model_parameters])
     print('Total parameter number:', params, '\n')
 
-    ## optimizer & criterion
-    optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
-    criterion = nn.CrossEntropyLoss()
+
+    ## test
+    if args.evaluate:
+        test()
+        exit()
 
     ## train
     for epoch in range(1, args.epochs + 1):
         train(epoch)
-        test(epoch)
-
-
+        test()
