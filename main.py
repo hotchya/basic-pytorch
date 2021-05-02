@@ -72,7 +72,7 @@ if __name__=='__main__':
     parser.add_argument('--test-batch-size', type=int, default=128, metavar='N',
             help='input batch size for testing (default: 128)')
     parser.add_argument('--model', action='store', default='LeNet5',
-            help='dataset: LeNet5 |')
+            help='model: LeNet5 |')
     parser.add_argument('--lr', type=float, default=0.1, metavar='LR',
             help='learning rate (default: 0.1)')
     parser.add_argument('--momentum', type=float, default=0.9, metavar='M',
