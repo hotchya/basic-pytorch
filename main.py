@@ -67,10 +67,10 @@ if __name__=='__main__':
     parser = argparse.ArgumentParser(description='Basic Pytorch')
     parser.add_argument('--dataset', action='store', default='MNIST',
             help='dataset: MNIST |')
-    parser.add_argument('--batch-size', type=int, default=128, metavar='N',
-            help='input batch size for training (default: 128)')
-    parser.add_argument('--test-batch-size', type=int, default=128, metavar='N',
-            help='input batch size for testing (default: 128)')
+    parser.add_argument('--batch-size', type=int, default=256, metavar='N',
+            help='input batch size for training (default: 256)')
+    parser.add_argument('--test-batch-size', type=int, default=256, metavar='N',
+            help='input batch size for testing (default: 256)')
     parser.add_argument('--model', action='store', default='LeNet5',
             help='model: LeNet5 |')
     parser.add_argument('--lr', type=float, default=0.1, metavar='LR',
