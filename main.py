@@ -64,7 +64,7 @@ def test():
 
 if __name__=='__main__':
     # argument
-    parser = argparse.ArgumentParser(description='Pytorch Example')
+    parser = argparse.ArgumentParser(description='Basic Pytorch')
     parser.add_argument('--dataset', action='store', default='MNIST',
             help='dataset: MNIST |')
     parser.add_argument('--batch-size', type=int, default=128, metavar='N',
