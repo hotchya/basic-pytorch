@@ -123,6 +123,8 @@ if __name__=='__main__':
     ## load model
     if args.model == 'LeNet5':
         model = models.LeNet5()
+        args.momentum = 0
+        args.weight_decay = 0
     
     if args.cuda:
         model.cuda()
