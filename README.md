@@ -1,6 +1,6 @@
 # basic-pytorch
 
-## Installizaion
+## Installation
 
 - Install required packages :
 
